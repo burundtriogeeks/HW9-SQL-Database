@@ -1,0 +1,4 @@
+[mariadb]
+innodb_buffer_pool_size = 16G
+innodb_log_file_size = 512M
+autocommit = ON

@@ -1,0 +1,49 @@
+version: "3.5"
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    environment:
+      - MARIADB_USER=dev_user
+      - MARIADB_PASSWORD=dev_password
+      - MARIADB_ROOT_PASSWORD=root_password
+      - MARIADB_DATABASE=test
+    volumes:
+      - "./data:/docker-entrypoint-initdb.d"
+      - "./config/mariadb/my_mariadb.cnf:/etc/mysql/conf.d/my_mariadb.cnf"
+    ports:
+      - "127.0.0.1:8086:3306"
+
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "127.0.0.1:8000:80"
+    volumes:
+      - "./app:/var/www/html/public"
+      - "./config/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+    environment:
+      - NGINX_HOST=localhost
+    depends_on:
+      - php
+    links:
+      - php
+
+
+  php:
+    build:
+      context: .
+      dockerfile: phpDockerFile
+    restart: always
+    depends_on:
+      - mariadb
+    links:
+      - mariadb
+    entrypoint: sh -c "php /var/www/html/public/fill_db.php && php-fpm"
+    volumes:
+      - "./app:/var/www/html/public"
+
+
+
+
